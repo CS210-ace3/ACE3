@@ -6,14 +6,14 @@
 
 int main(int argc, char *argv[])
 {
-	char array[4000][16];
+	char array[4096][16];
 	struct registers
 	{
-		int ac: 16;
-		int ir: 16;
-		int mbr: 16;
-		int pc: 12;
-		int mar: 12;
+		int16_t ac;
+		int16_t ir;
+		int16_t mbr;
+		int16_t pc;
+		int16_t mar;
 	}
 	struct registers *cpu = malloc(sizeof(struct reg));
 
