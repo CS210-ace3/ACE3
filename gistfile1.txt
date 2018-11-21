@@ -1,23 +1,333 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#define row 4096
+#define column 16
 
-#define INPUT_FILE "file"
+	int *temp;
+	int PC;
+	int AC[16];
+	int MAR;
+	int MBR[16];
+	int IR[16];
+	int opcode[4];
+	int operand[12];
+	int memory[row][column];
+	int *mem = &memory[0][0];
+	char answer[50];
+	userprmt(mem, answer);
 
-int main(int argc, char *argv[])
-{
-	char array[4096][16];
-	struct registers
-	{
-		int16_t ac;
-		int16_t ir;
-		int16_t mbr;
-		int16_t pc;
-		int16_t mar;
+void userprmt(int *mem, char *answer){
+
+	for(int i = 0; i < row; i++){
+		printf("Please enter input for cell %d:\nTo stop the program, please enter 'exit'.\n", i+1);
+		fgets(answer, 50, stdin);
+		printf("The user input is %s\n", answer);
+		
+		if (*answer == 'e' && *(answer + 1) == 'x' && *(answer + 2) == 'i' && *(answer +3) == 't')
+		{
+			exit(0);
+		}
 	}
-	struct registers *cpu = malloc(sizeof(struct reg));
+	
+
+}
+
+void load(int address){
+	MAR = address;
+	AC = memory[MAR];
+}
+
+void store(int address){
+	MAR = address;
+	memory[MAR] = AC;
+}
+
+void subt(){
+	int x = binToDec(AC), y = binToDec(memory[MAR]);
+	int dec_result = x - y;
+	decToBin(dec_result, AC);
+}
 
 
+void add(){
+	int x = binToDec(AC), y = binToDec(memory[MAR]);
+	int dec_result = x + y;
+	decToBin(dec_result, AC);
+}
+
+void input(){
+}
+
+void output(){
+	printf("AC is");
+}
+
+void jump(int address){
+	PC = address;
+}
+
+void shiftL(int x){
+	if(!(0<x<=16)){
+		printf("Invalid value for shift");
+	}
+	else{
+		for(int i = 0; i<16; i++){
+			if((x+i)<16){
+				AC[i] = AC[x+i];
+			}
+			else{
+				AC[i] = 0;
+			}
+		}
+	}
+}
+
+void shiftR(int x){
+	if(!(0<x<=16)){
+		printf("Invalid value for shift");
+	}
+	else{
+		for(int i = 15; i>=0; i--){
+			if((i-x)>0){
+				AC[i] = AC[i-x];
+			}
+			else{
+				AC[i] = 0;
+			}
+		}
+	}
+}
+
+int binToDec(int bin[16]){
+	int dec = 0, cv = 1, i;
+	for(i = 15; i>=1; i--){
+		if(bin[i]==1){
+			dec += cv;
+		}
+		cv = cv*2;
+	}
+	if(bin[0] == 1){
+		dec = -32768+dec;
+	}
+	return dec;
+}
+
+void decToBin(int dec, int b[16]){
+	int of;
+	int i, init_dec = dec;
+	if(dec<0 && dec >= -32768){
+		dec += 65536;
+		b[0]=1;
+	}
+	if(dec<-32768){
+		of=1;
+	}
+	for(i = 15; i>=0; i--){
+		b[i] = dec%2;
+		dec = dec/2;
+		if(b[i]==-1){
+			b[i] = 1;
+		}
+		if(b[0]==1 && init_dec > 0){
+			of=1;
+		}
+	}
+	if(dec!=0)
+		of=1;
+}
+
+void ConToAssembly(int m[5][16]){
+	char h[4];
+	int x;
+	for(int i = 0; i<5; i++){
+		x = binToDec(m[i]);
+		decToHex(x, h);
+		switch(h[0]){
+			case '0':
+				printf("Halt		");
+				break;
+			case '1':
+				printf("Load		");
+				break;
+			case '2':
+				printf("Store		");
+				break;
+			case '3':
+				printf("Subt		");
+				break;
+			case '4':
+				printf("Add		");
+				break;
+			case '5':
+				printf("Input		");
+				break;
+			case '6':
+				printf("Output		");
+				break;
+			case '7':
+				printf("Skipcond	");
+				break;
+			case '8':
+				printf("Jump		");
+				break;
+			case '9':
+				printf("ShiftL		");
+				break;
+			case 'A':
+				printf("ShiftR		");
+				break;
+			case 'B':
+				printf("Addi		");
+				break;
+			default:
+				printf("DATA		");
+				break;
+		}
+		for(int j = 4; j<16; j++){
+			printf("%d", m[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void decToHex(int dec, char h[4]){
+	int i;
+	if(dec<0 && dec >= -32768){
+		dec += 65536;
+	}
+	for(i = 3; i>=0; i--){
+		switch(dec%16){
+			case 0: 
+				h[i] = '0';
+				break;
+			case 1:
+				h[i] = '1';
+				break;
+			case 2: 
+				h[i] = '2';
+				break;
+			case 3:
+				h[i] = '3';
+				break;
+			case 4: 
+				h[i] = '4';
+				break;
+			case 5:
+				h[i] = '5';
+				break;
+			case 6: 
+				h[i] = '6';
+				break;
+			case 7:
+				h[i] = '7';
+				break;
+			case 8: 
+				h[i] = '8';
+				break;
+			case 9:
+				h[i] = '9';
+				break;
+			case 10: 
+				h[i] = 'A';
+				break;
+			case 11:
+				h[i] = 'B';
+				break;
+			case 12: 
+				h[i] = 'C';
+				break;
+			case 13:
+				h[i] = 'D';
+				break;
+			case 14: 
+				h[i] = 'E';
+				break;
+			case 15:
+				h[i] = 'F';
+				break;
+		}
+		dec = dec/16;
+	}
+}
+
+
+
+void fetchDecode(int *mem){
+
+//fetch
+//copy the pc to mar
+MAR = PC;
+
+//copy contents of memory at address MAR to IR
+for(int i = 0; i<16; i++){
+IR[i] = Memory[MAR][i]
+
+//increment PC by 1
+PC++;
+
+//Decode
+//get opcode
+for(int i = 0; i < 4; i++){
+opcode[i] = IR[i];
+}binToDec(
+
+//Get operand
+for(int i = 4; i < 16; i++){
+opcode[i] = IR[i];
+
+}
+
+//Place bits IR in MAR
+MAR = binToDec(operand);
+//DEcode opcode
+opcodeChecker(opcode);
+
+}
+
+
+void opcodeChecker(){
+if strcmp(opcode, 0001)){
+	printf("Load %s \n", operand);
+	load();
+} else if strcmp(opcode, 0010)){
+	printf("Store %s \n", operand);
+	store();
+
+} else if strcmp(opcode, 0011)){
+	printf("Subt %s \n", operand);
+	Subt();
+
+} else if strcmp(opcode, 0100)){
+	printf("Add %s \n", operand);
+	Add();
+
+} else if strcmp(opcode, 0101)){
+	printf("Input %s \n", operand);
+	Input();
+
+} else if strcmp(opcode, 0110)){
+	printf("Output %s \n", operand);
+	Output();
+
+} else if strcmp(opcode, 0111)){
+	printf("Halt %s \n", operand);
+	Halt();
+
+} else if strcmp(opcode, 1001)){
+	printf("Jump %s \n", operand);
+	Jump();
+
+} else if strcmp(opcode, 1010)){
+	printf("ShiftLeft %s \n", operand);
+	Shiftl();
+
+} else if strcmp(opcode, 0001)){
+	printf("ShiftRight %s \n", operand);
+	Shiftr();
+
+int main(int argc, char *argv[]){
+	
+	
+	
 	if (argc < 2)
 	{
 		printf("Missing argument(s)./n-d to load the default content into the memory/n-c to insert own input/n-f to read the content of a file/n");
@@ -43,48 +353,12 @@ int main(int argc, char *argv[])
 		{
 			//read the file
 		}
-	}
-
+}
 	return 0;
-
 }
 
-Instructions ():
-void Load(struct registers *cpu, char *array){
-	// Load the content of address X into AC
-	
-}
 
-void Store(address X){
-	// Store the contents of AC into address X
-}
 
-void Subt(address X){
-	// Load address X into a variable sub
-	// AC = AC - sub
-}
 
-void Add(address X){
-	// Load address X into a variable add
-	// AC = AC + add
-}
 
-void Input(){
-	// scan input into AC
-}
-
-void Output(){
-	// print AC
-}
-
-void Halt(){
-	// close program
-}
-
-void Skipcond(){
-	// PC++
-}
-
-void Jump(address X){
-	// PC = X
 }
